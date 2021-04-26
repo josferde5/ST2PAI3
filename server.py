@@ -1,99 +1,46 @@
 import socket
 import ssl
+import _thread
 
-import random
-import errno
+import config
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-buffer_size = 16384
+c = config.Config()
+username = "st2pai3"
+passwd = "prueba"
 
 
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-context.load_cert_chain('/path/to/certchain.pem', '/path/to/private.key')
-
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
-    sock.bind(('127.0.0.1', 8443))
-    sock.listen(5)
-    with context.wrap_socket(sock, server_side=True) as ssock:
-        conn, addr = ssock.accept()
-
-
-def key_agreement(server_socket, received_info):
-    data = received_info.split(',')
-    w = random.randint(1, int(data[1]) - 1)
-    dh = pow(int(data[3]), w, int(data[1]))
-    b = pow(int(data[2]), w, int(data[1]))
-    nonce = utils.generate_nonce()
-    mac_b = utils.message_hmac(data[3], str(dh), nonce)
-    server_socket.sendall(bytes(f'{str(b)},{str(mac_b)},{nonce}', 'utf-8'))
-
-    try:
-        data = server_socket.recv(buffer_size)
-        received_info = str(data, 'utf-8').split(',')
-    except socket.error as e:
-        if e.errno == errno.ECONNABORTED:
-            print("SERVER INFO: Connection aborted by the client. Maybe a problem with Diffie-Hellman key agreement?")
-            return None
-
-    mac_a = utils.message_hmac(str(b), str(dh), received_info[1])
-    if not mac_a == received_info[0] or database.exists_nonce(received_info[1]):
-        print(
-            "SERVER INFO: the MAC received does not match with the one obtained in the server or NONCE wasn't unique. Aborting connection.")
-        raise DiffieHellmanError(
-            'The MAC received does not match with the one obtained in the or NONCE was not unique.')
-    else:
-        database.insert_nonce(received_info[1])
-        key_hex = format(dh, 'x')
-        print(f"SERVER INFO: the key is {key_hex}")
-        return key_hex
+def threaded_client(connection):
+    while True:
+        data = connection.recv(2048)
+        if not data:
+            continue
+        received_info = str(data, 'utf-8')
+        print("SERVER - Message received: " + received_info)
+        received_info_sp = received_info.split(",")
+        if len(received_info_sp) < 2:
+            connection.sendall(bytes("Username and password required", "utf-8"))
+        if received_info_sp[0].strip() != username or received_info_sp[1].strip() != passwd:
+            connection.sendall(bytes("Bad credentials: username or password incorrect", "utf-8"))
+        else:
+            connection.sendall(bytes("Message received successfully", "utf-8"))
+        break
 
 
-def tcpip_server(s_socket):
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    with server_socket:
-        server_addr = ('localhost', s_socket)
-        server_socket.bind(server_addr)
-        server_socket.listen(1)
+def tls13_server():
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_verify_locations(cafile="certs/client.crt")
+    context.load_cert_chain(keyfile="certs/server.key", certfile="certs/server.crt")
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('127.0.0.1', c.port))
+        s.listen()
         print('SERVER INFO: Server up, waiting for a connection.')
-        connection, client_address = server_socket.accept()
-        print('SERVER INFO: received connection from', client_address)
-        with connection:
+        with context.wrap_socket(s, server_side=True) as ssock:
             while True:
-                data = connection.recv(buffer_size)
-                if not data:
-                    continue
+                connection, a = ssock.accept()
+                print('SERVER INFO: received connection from', a)
+                _thread.start_new_thread(threaded_client, (connection,))
 
-                received_info = str(data, 'utf-8')
-                decoded = received_info.split(',')
-                if decoded[0] == 'END':
-                    break
-                elif decoded[0] == 'KEYAGREEMENT':
-                    print(f"SERVER INFO: establishing key agreement with Diffie-Hellman")
-                    try:
-                        key = key_agreement(connection, received_info)
-                        if not key:
-                            break
-                    except DiffieHellmanError:
-                        break
-                else:
-                    print("SERVER INFO: Received from client: " + received_info)
-                    if decoded[1] == utils.message_hmac(decoded[0], key, decoded[2]) and not database.exists_nonce(
-                            decoded[2]):
-                        database.insert_nonce(decoded[2])
-                        result = 'Correct message integrity.'
-                        print('SERVER INFO: ' + result)
-                    elif decoded[1] == utils.message_hmac(decoded[0], key, decoded[2]) and database.exists_nonce(
-                            decoded[2]):
-                        reports.update_logs(decoded[0], decoded[1], decoded[2], key, 'Duplicate nonce')
-                        result = 'A reply attack has been detected.'
-                        print('SERVER WARN: ' + result)
-                    elif decoded[1] != utils.message_hmac(decoded[0], key, decoded[2]):
-                        reports.update_logs(decoded[0], decoded[1], decoded[2], key, 'Modified message content')
-                        result = 'Integrity void, message modified or treated.'
-                        print('SERVER WARN: ' + result)
 
-                    connection.send(bytes(result, 'utf-8'))
-            print("SERVER INFO: Closing server.")
+if __name__ == "__main__":
+    tls13_server()
