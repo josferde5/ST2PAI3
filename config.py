@@ -18,6 +18,19 @@ class ConfigSingleton(type):
                 cls.port = '7070'
             cls.port = int(cls.port)
 
+            cls.username = c.get('username', 'st2pai3')
+            if cls.username == '':
+                cls.username = 'st2pai3'
+
+            cls.password = c.get('password', 'qwerty')
+            if cls.password == '':
+                cls.password = 'qwerty'
+
+            cls.connections = c.get('connections', '300')
+            if cls.connections == '':
+                cls.connections = '300'
+            cls.connections = int(cls.connections)
+
         return cls._instances[cls]
 
 
