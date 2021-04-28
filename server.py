@@ -14,6 +14,7 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter(format, datefmt='%d-%m-%y %H:%M:%S'))
 logging.getLogger().addHandler(handler)
 
+
 def threaded_client(connection):
     while True:
         data = connection.recv(2048)
@@ -27,13 +28,13 @@ def threaded_client(connection):
                 logging.info('The message has been discarded due to an error in the credentials')
                 connection.sendall(bytes('The message has been discarded due to an error in the credentials', 'utf-8'))
             else:
-                logging.info('{Username: ' + received_info_sp[0].strip() + ', Message: ' + received_info_sp[2].strip() + '}')
+                logging.info(
+                    '{Username: ' + received_info_sp[0].strip() + ', Message: ' + received_info_sp[2].strip() + '}')
                 connection.sendall(bytes('Message saved successfully', 'utf-8'))
         else:
             logging.info('The message has been discarded due to an error in the format')
             connection.sendall(bytes('The message has been discarded due to an error in the format', 'utf-8'))
         break
-
 
 
 def tls13_server():

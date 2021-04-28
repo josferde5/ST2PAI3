@@ -14,11 +14,13 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter(format, datefmt='%d-%m-%y %H:%M:%S'))
 logging.getLogger().addHandler(handler)
 
+
 def tls13_client(is_test):
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.verify_mode = ssl.CERT_REQUIRED
     context.load_verify_locations(cafile='certs/server.crt')
     context.load_cert_chain(keyfile='certs/client.key', certfile='certs/client.crt')
+    context.set_ciphers("CHACHA20:!ECDHE")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         with context.wrap_socket(s, server_hostname='example.com') as ssock:
@@ -53,5 +55,3 @@ if __name__ == '__main__':
             counter += 1
     else:
         tls13_client(False)
-
-
