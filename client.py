@@ -6,13 +6,7 @@ import config
 import logging
 
 c = config.Config()
-
-format = '[%(asctime)s] CLIENT - %(levelname)s : %(message)s'
-logging.basicConfig(format=format, level=logging.INFO, filename='tls.log', datefmt='%d-%m-%y %H:%M:%S')
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-handler.setFormatter(logging.Formatter(format, datefmt='%d-%m-%y %H:%M:%S'))
-logging.getLogger().addHandler(handler)
+config.set_logging_configuration(True)
 
 
 def tls13_client(is_test):
@@ -47,7 +41,7 @@ def tls13_client(is_test):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and str(sys.argv[1]) == 'Test':
+    if len(sys.argv) > 1 and str(sys.argv[1]) == 'test':
         counter = 0
         while counter < c.connections:
             p = Thread(target=tls13_client(True))

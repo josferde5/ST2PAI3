@@ -3,16 +3,9 @@ import ssl
 import _thread
 import config
 import logging
-import sys
+import os
 
 c = config.Config()
-
-format = '[%(asctime)s] SERVER - %(levelname)s : %(message)s'
-logging.basicConfig(format=format, level=logging.INFO, filename='tls.log', datefmt='%d-%m-%y %H:%M:%S')
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-handler.setFormatter(logging.Formatter(format, datefmt='%d-%m-%y %H:%M:%S'))
-logging.getLogger().addHandler(handler)
 
 
 def threaded_client(connection):
@@ -54,4 +47,7 @@ def tls13_server():
 
 
 if __name__ == '__main__':
+    if os.path.exists("tls.log"):
+        os.remove("tls.log")
+    config.set_logging_configuration(False)
     tls13_server()

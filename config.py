@@ -1,4 +1,6 @@
 from configparser import ConfigParser
+import logging
+import sys
 
 
 class ConfigSingleton(type):
@@ -36,6 +38,15 @@ class ConfigSingleton(type):
             cls.connections = int(cls.connections)
 
         return cls._instances[cls]
+
+
+def set_logging_configuration(is_client):
+    logging_format = '[%(asctime)s] ' + ('CLIENT' if is_client else 'SERVER') + ' - %(levelname)s : %(message)s'
+    logging.basicConfig(format=logging_format, level=logging.INFO, filename='tls.log', datefmt='%d-%m-%y %H:%M:%S')
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter(logging_format, datefmt='%d-%m-%y %H:%M:%S'))
+    logging.getLogger().addHandler(handler)
 
 
 class Config(metaclass=ConfigSingleton):
