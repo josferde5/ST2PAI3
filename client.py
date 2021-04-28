@@ -28,11 +28,13 @@ def tls13_client(is_test):
             if is_test:
                 username = c.username
                 password = c.password
+                message = c.message
             else:
                 username = input('Enter username: ')
                 password = stdiomask.getpass(prompt='Enter password: ')
+                message = input('Enter a message: ')
 
-            ssock.sendall(bytes(username + '#' + password, 'utf-8'))
+            ssock.sendall(bytes(username + '#' + password + '#' + message, 'utf-8'))
             while True:
                 data = ssock.recv(2048)
                 if not data:
@@ -40,21 +42,7 @@ def tls13_client(is_test):
                 else:
                     received_info = str(data, 'utf-8')
                     logging.info(received_info)
-                    if received_info == 'Successful login!':
-                        if is_test:
-                            message = 'Test message'
-                        else:
-                            message = input('Enter a message: ')
-
-                        ssock.sendall(bytes(message, 'utf-8'))
-                        continue
-                    elif received_info == 'Message received successfully':
-                        break
-                    else:
-                        username = input('Enter username: ')
-                        password = stdiomask.getpass(prompt='Enter password: ')
-                        ssock.sendall(bytes(username + '#' + password, 'utf-8'))
-                        continue
+                    break
 
 
 if __name__ == '__main__':

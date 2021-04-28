@@ -21,18 +21,16 @@ def threaded_client(connection):
             continue
         received_info = str(data, 'utf-8')
         received_info_sp = received_info.split('#')
-        if len(received_info_sp) == 2:
-            if received_info_sp[0].strip() != c.username or received_info_sp[1].strip() != c.password:
-                connection.sendall(bytes('Incorrect username or password', 'utf-8'))
-                continue
-            else:
-                logging.info('Logged user: ' + received_info_sp[0].strip())
-                connection.sendall(bytes('Successful login!', 'utf-8'))
-                continue
-        else:
-            logging.info('Message received: ' + received_info_sp[0].strip())
-            connection.sendall(bytes('Message received successfully', 'utf-8'))
+
+        if received_info_sp[0].strip() != c.username or received_info_sp[1].strip() != c.password:
+            logging.info('Message has been discarded')
+            connection.sendall(bytes('Message has been discarded', 'utf-8'))
             break
+        else:
+            logging.info('{Username: ' + received_info_sp[0].strip() + ', Message: ' + received_info_sp[2].strip() + '}')
+            connection.sendall(bytes('Message saved successfully', 'utf-8'))
+            break
+
 
 
 def tls13_server():

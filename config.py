@@ -26,6 +26,10 @@ class ConfigSingleton(type):
             if cls.password == '':
                 cls.password = 'qwerty'
 
+            cls.message = c.get('message', 'Connections test')
+            if cls.message == '':
+                cls.message = 'Connections test'
+
             cls.connections = c.get('connections', '300')
             if cls.connections == '':
                 cls.connections = '300'
