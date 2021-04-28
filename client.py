@@ -3,7 +3,6 @@ import ssl
 from threading import Thread
 import sys
 import config
-import stdiomask
 import logging
 
 c = config.Config()
@@ -31,7 +30,7 @@ def tls13_client(is_test):
                 message = c.message
             else:
                 username = input('Enter username: ')
-                password = stdiomask.getpass(prompt='Enter password: ')
+                password = input('Enter password: ')
                 message = input('Enter a message: ')
 
             ssock.sendall(bytes(username + '#' + password + '#' + message, 'utf-8'))
