@@ -32,6 +32,7 @@ def threaded_client(connection):
         else:
             logging.info('The message has been discarded due to an error in the format')
             connection.sendall(bytes('The message has been discarded due to an error in the format', 'utf-8'))
+        break
 
 
 
