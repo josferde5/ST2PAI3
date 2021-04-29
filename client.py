@@ -18,7 +18,7 @@ def tls13_client(is_test, tic):
     context.verify_mode = ssl.CERT_REQUIRED
     context.load_verify_locations(cafile='certs/server.crt')
     context.load_cert_chain(keyfile='certs/client.key', certfile='certs/client.crt')
-    context.set_ciphers("CHACHA20:!ECDHE")
+    context.set_ciphers("CHACHA20")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         with context.wrap_socket(s, server_hostname='example.com') as ssock:
