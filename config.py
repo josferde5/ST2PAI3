@@ -15,9 +15,9 @@ class ConfigSingleton(type):
 
             c = config['CONFIG']
 
-            cls.port = c.get('port', '7070')
+            cls.port = c.get('port', '8443')
             if cls.port == '':
-                cls.port = '7070'
+                cls.port = '8443'
             cls.port = int(cls.port)
 
             cls.username = c.get('username', 'st2pai3')
@@ -42,9 +42,9 @@ class ConfigSingleton(type):
 
 def set_logging_configuration(is_client):
     logging_format = '[%(asctime)s] ' + ('CLIENT' if is_client else 'SERVER') + ' - %(levelname)s : %(message)s'
-    logging.basicConfig(format=logging_format, level=logging.INFO, filename='tls.log', datefmt='%d-%m-%y %H:%M:%S')
+    logging.basicConfig(format=logging_format, level=logging.DEBUG, filename='tls.log', datefmt='%d-%m-%y %H:%M:%S')
     handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.INFO)
+    handler.setLevel(logging.DEBUG)
     handler.setFormatter(logging.Formatter(logging_format, datefmt='%d-%m-%y %H:%M:%S'))
     logging.getLogger().addHandler(handler)
 

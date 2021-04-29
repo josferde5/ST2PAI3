@@ -1,15 +1,19 @@
 import socket
 import ssl
-from threading import Thread
+import time
+from threading import Thread, Lock
 import sys
 import config
 import logging
 
 c = config.Config()
 config.set_logging_configuration(True)
+i = 0
 
 
-def tls13_client(is_test):
+def tls13_client(is_test, tic):
+    global i
+    lock = Lock()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.verify_mode = ssl.CERT_REQUIRED
     context.load_verify_locations(cafile='certs/server.crt')
@@ -39,13 +43,21 @@ def tls13_client(is_test):
                     logging.info(received_info)
                     break
 
+    if is_test:
+        with lock:
+            i = i + 1
+            if i == c.connections:
+                tac = time.perf_counter()
+                logging.debug(f"Time elapsed: {tac - tic} seconds")
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and str(sys.argv[1]) == 'test':
         counter = 0
+        timestamp_start = time.perf_counter()
         while counter < c.connections:
-            p = Thread(target=tls13_client(True))
+            p = Thread(target=tls13_client(True, timestamp_start))
             p.start()
             counter += 1
     else:
-        tls13_client(False)
+        tls13_client(False, None)
